@@ -16,8 +16,6 @@ guild_ids = os.getenv('DISCORD_GUILD')
 guild_ids = guild_ids.split() 
 guild_ids = guild_ids[2:-2] 
 
-#testing stuff
-
 # Client       
 client = commands.Bot(
     command_prefix="!",
