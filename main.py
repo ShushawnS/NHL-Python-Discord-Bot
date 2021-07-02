@@ -78,7 +78,7 @@ def getRoster(ctx,team):
     length = len(rosterData['roster'])
     x = 0
     for x in range(length):
-        myEmbed.add_field(name = f"**{rosterData['roster'][x]['person']['fullName']} **", value = f" \n\nPosition: {rosterData['roster'][x]['position']['name']} [{rosterData['roster'][x]['position']['code']}] \n\nJersey Number: {rosterData['roster'][x]['jerseyNumber']} \n\nID: {rosterData['roster'][x]['person']['id']} ", inline = True)
+        myEmbed.add_field(name = f"**{rosterData['roster'][x]['person']['fullName']} **", value = f" \n > Position: {rosterData['roster'][x]['position']['name']} [{rosterData['roster'][x]['position']['code']}] \n > Jersey Number: {rosterData['roster'][x]['jerseyNumber']} \n > ID: {rosterData['roster'][x]['person']['id']} ", inline = True)
     
     return myEmbed
     #ctx.send(embed = myEmbed) 
@@ -96,13 +96,25 @@ def getPlayer(ctx, id):
     playerJSON = response.text 
     playerData = json.loads(playerJSON)  
     
-    #Adds Details If A Player Is Leader
     leadership = ' '
-    if (playerData['people'][0]['captain']):
-        leadership = ' [Captain]'
-    elif (playerData['people'][0]['alternateCaptain']):
-        leadership = ' [Assistant Captain]' 
-        
+    #Adds Details If A Player Is Leader
+    if (playerData['people'][0]['active'] == 'true'):
+        if (playerData['people'][0]['captain']):
+            leadership = ' [Captain]'
+        elif (playerData['people'][0]['alternateCaptain']):
+            leadership = ' [Assistant Captain]' 
+    
+    #Creates and Runs API Request [Player Stats Details]
+    base_url = 'https://statsapi.web.nhl.com/api/v1/people/{}/stats?stats=statsSingleSeason&season=20202021'
+    url = base_url.format(id)
+    response = requests.get(url)
+    print(response.status_code) 
+    #print(response.text) 
+
+    #Makes JSON Information A Python Object
+    playerStatsJSON = response.text 
+    playerStatsData = json.loads(playerStatsJSON)
+
     #Create Embed 
     myEmbed = discord.Embed(title = 'Player Details For: ', description = f" {playerData['people'][0]['fullName']} {leadership} \n \n", color = 0x00ff00)            
     myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url) 
@@ -110,8 +122,11 @@ def getPlayer(ctx, id):
     myEmbed.set_thumbnail(url=f"http://nhl.bamcontent.com/images/headshots/current/168x168/{id}.jpg")
 
     #Creates a Field For Each Piece of Information
-    myEmbed.add_field(name = "**Basic Details: **", value = f"Age: {playerData['people'][0]['currentAge']} \n Birth Date: {playerData['people'][0]['birthDate']} \n Birth City: {playerData['people'][0]['birthCity']} \n Nationality: {playerData['people'][0]['nationality']} \n Height: {playerData['people'][0]['height']} \n Weight: {playerData['people'][0]['weight']} ", inline = True) 
-    myEmbed.add_field(name = "**Current Team: **", value = f"Organization: {playerData['people'][0]['currentTeam']['name']} \n Jersey Number: {playerData['people'][0]['primaryNumber']}", inline = True)
+    myEmbed.add_field(name = "**Basic Details: **", value = f" > *Age:* {playerData['people'][0]['currentAge']} \n > Birth Date: {playerData['people'][0]['birthDate']} \n > Birth City: {playerData['people'][0]['birthCity']} \n > Nationality: {playerData['people'][0]['nationality']} \n > Height: {playerData['people'][0]['height']} \n > Weight: {playerData['people'][0]['weight']} ", inline = True) 
+    myEmbed.add_field(name = "**Current Team: **", value = f" > Organization: {playerData['people'][0]['currentTeam']['name']} \n > Jersey Number: {playerData['people'][0]['primaryNumber']}", inline = True)
+
+    if playerData['people'][0]['primaryPosition']['code'] != 'G' and (playerStatsData['stats'][0]['splits']):
+        myEmbed.add_field(name = f"**Player Stats For: ** [{playerStatsData['stats'][0]['splits'][0]['season']}]", value = f" > GP: {playerStatsData['stats'][0]['splits'][0]['stat']['games']} \n > G: {playerStatsData['stats'][0]['splits'][0]['stat']['goals']} \n > A: {playerStatsData['stats'][0]['splits'][0]['stat']['assists']} \n > TP: {playerStatsData['stats'][0]['splits'][0]['stat']['points']} \n > +/-: {playerStatsData['stats'][0]['splits'][0]['stat']['plusMinus']}  ", inline = True)
 
     return myEmbed 
 
@@ -255,7 +270,7 @@ async def _roster(ctx:SlashContext, team):
 async def _roster(ctx:SlashContext, id):
     #print(f"THIS IS CRAZY: {team}")
     #await ctx.send(f"{team}")  
-    playerEmbed = getPlayer(ctx, id) 
+    playerEmbed = getPlayer(ctx, id)
     await ctx.send(embed = playerEmbed) 
 
 #[teamstats] slash command
