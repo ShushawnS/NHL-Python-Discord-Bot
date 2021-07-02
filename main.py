@@ -126,7 +126,9 @@ def getPlayer(ctx, id):
     myEmbed.add_field(name = "**Current Team: **", value = f" > Organization: {playerData['people'][0]['currentTeam']['name']} \n > Jersey Number: {playerData['people'][0]['primaryNumber']}", inline = True)
 
     if playerData['people'][0]['primaryPosition']['code'] != 'G' and (playerStatsData['stats'][0]['splits']):
-        myEmbed.add_field(name = f"**Player Stats For: ** [{playerStatsData['stats'][0]['splits'][0]['season']}]", value = f" > GP: {playerStatsData['stats'][0]['splits'][0]['stat']['games']} \n > G: {playerStatsData['stats'][0]['splits'][0]['stat']['goals']} \n > A: {playerStatsData['stats'][0]['splits'][0]['stat']['assists']} \n > TP: {playerStatsData['stats'][0]['splits'][0]['stat']['points']} \n > +/-: {playerStatsData['stats'][0]['splits'][0]['stat']['plusMinus']}  ", inline = True)
+        myEmbed.add_field(name = f"**Player Stats For: ** [{playerStatsData['stats'][0]['splits'][0]['season']}]", value = f" > GP: {playerStatsData['stats'][0]['splits'][0]['stat']['games']} \n > G: {playerStatsData['stats'][0]['splits'][0]['stat']['goals']} \n > A: {playerStatsData['stats'][0]['splits'][0]['stat']['assists']} \n > TP: {playerStatsData['stats'][0]['splits'][0]['stat']['points']} \n > +/-: {playerStatsData['stats'][0]['splits'][0]['stat']['plusMinus']}  ", inline = True) 
+    elif playerData['people'][0]['primaryPosition']['code'] == 'G' and (playerStatsData['stats'][0]['splits']):
+        myEmbed.add_field(name = f"**Player Stats For: ** [{playerStatsData['stats'][0]['splits'][0]['season']}]", value = f" > GP: {playerStatsData['stats'][0]['splits'][0]['stat']['games']} \n > W: {playerStatsData['stats'][0]['splits'][0]['stat']['wins']} \n > L: {playerStatsData['stats'][0]['splits'][0]['stat']['losses']} \n > SO: {playerStatsData['stats'][0]['splits'][0]['stat']['shutouts']} \n > GAA: {playerStatsData['stats'][0]['splits'][0]['stat']['goalAgainstAverage']} \n > SV%: {playerStatsData['stats'][0]['splits'][0]['stat']['savePercentage']} ", inline = True) 
 
     return myEmbed 
 
