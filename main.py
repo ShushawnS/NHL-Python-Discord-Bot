@@ -13,6 +13,13 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 testingtestingtesting
 1
 2
+
+
+
+
+
+
+pouherfgghuopwehrouhorfpufwhopuwhuoewfuiwoiuhfwouwefhufe
 '''
 
 #Initalize Variables
@@ -48,6 +55,12 @@ async def on_ready():
         f'User ID: {client.user.id}, Version: {discord.__version__}\n',
         f'DISCORD BOT WRITTEN BY Shushawn Saha\n'
     )
+
+#random function that returns h
+def returnH()
+    epicname = "h"
+    jeexz = epicname
+    return jeexz
 
 
 #Get Roster Function 
