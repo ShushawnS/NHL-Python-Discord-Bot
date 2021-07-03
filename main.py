@@ -10,16 +10,6 @@ from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
 
 '''
-testingtestingtesting
-1
-2
-
-
-
-
-
-
-pouherfgghuopwehrouhorfpufwhopuwhuoewfuiwoiuhfwouwefhufe
 fixed current player error
 '''
 
@@ -56,13 +46,6 @@ async def on_ready():
         f'User ID: {client.user.id}, Version: {discord.__version__}\n',
         f'DISCORD BOT WRITTEN BY Shushawn Saha\n'
     )
-
-#random function that returns h
-def returnH():
-    epicname = "h"
-    jeexz = epicname
-    return jeexz
-
 
 #Get Roster Function 
 def getRoster(ctx,team):
@@ -170,9 +153,116 @@ def getPlayer(ctx, id):
     elif playerData['people'][0]['primaryPosition']['code'] == 'G' and (playerStatsData['stats'][0]['splits']):
         myEmbed.add_field(name = f"**Player Stats For: ** [{playerStatsData['stats'][0]['splits'][0]['season']}]", value = f" > GP: {playerStatsData['stats'][0]['splits'][0]['stat']['games']} \n > W: {playerStatsData['stats'][0]['splits'][0]['stat']['wins']} \n > L: {playerStatsData['stats'][0]['splits'][0]['stat']['losses']} \n > SO: {playerStatsData['stats'][0]['splits'][0]['stat']['shutouts']} \n > GAA: {playerStatsData['stats'][0]['splits'][0]['stat']['goalAgainstAverage']} \n > SV%: {playerStatsData['stats'][0]['splits'][0]['stat']['savePercentage']} ", inline = True) 
 
-    return myEmbed 
+    return myEmbed
+
+def getTeamEmbed(ctx,teamID):
+    #Creates and Runs API Request [Roster Details]
+    print(f"GETTING TEAMID DATA {teamID} !!!!!\n\n\n")
+    base_url = 'https://statsapi.web.nhl.com/api/v1/teams/{}/stats'
+    url = base_url.format(teamID)
+    response = requests.get(url)
+    print(response.status_code)
+    print(response.text)
+
+    #Makes JSON Information A Python Object
+    nhlJSON = response.text
+    nhlData = json.loads(nhlJSON)
+
+    #Create Embed
+    try:
+        myEmbed = discord.Embed(title=nhlData['stats'][0]['splits'][0]['team']['name'], description="")
+        myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url)
+        myEmbed.set_footer(text = f"NHL Stats - Team ID: {teamID}")
+        myEmbed.add_field(name="teamname", value=nhlData["stats"][0]["splits"][0]["team"]["name"], inline = True)
+    except:
+        myEmbed = discord.Embed(title = "Error", description="Something went wrong. This team ID probably doesn't exist or doesn't have any data associated with it.")
+        myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url)
+        myEmbed.set_footer(text = f"NHL Stats - Team ID: {teamID}")
+        #myEmbed.add_field(name="?????", value="This team ID probably doesn't exist.", inline = True)
+
+    return myEmbed
+
+
+async def pageReactions(ctx,embedMsg,secTimeout):
+#given msg, watch for reactions and return -1,0,1 (⬅️❌➡️) depending on user input
+# 0 = quit,
+
+    def check(reaction, user):
+    #parameters for a valid reaction
+        print(f"user reacted with {reaction.emoji} on team embed")
+            
+        return user == ctx.author and reaction.message.id == embedMsg.id and (reaction.emoji == "⬅️" or reaction.emoji == "➡️" or reaction.emoji == "❌")
+
+    try:
+        reaction, user = await ctx.bot.wait_for('reaction_add', timeout=secTimeout, check=check)
+        return reaction
+    except asyncio.TimeoutError:
+        return "timeout"
+
+def deadEmbed(type):
+    if(type == "timeout"):
+        return discord.Embed(title="nice one", description="self.shit()")
+    if(type == "kill"):
+        return discord.Embed(title="adios", description="i will remember you hermano")
+
+# 
+# 
+#  END OF FUNCTIONS, COMMANDS BELOW
+# 
+# 
 
 #Handles '!' commands
+
+#
+#
+#
+
+@client.command(name="team")
+async def _team(ctx,*args):
+    #print(f"THIS IS CRAZY: {team}")
+    #await ctx.send(f"{team}")
+
+    print(f"ARG0 IS {args[0]}")
+
+    teamID = int(args[0])
+
+    embedMsg = await ctx.send(embed = getTeamEmbed(ctx,teamID))
+    
+    reaction = None
+    
+    await embedMsg.add_reaction("⬅️")
+    await embedMsg.add_reaction("❌")
+    await embedMsg.add_reaction("➡️")
+
+    while True:
+        reaction = await pageReactions(ctx,embedMsg,7)
+
+        if type(reaction) != str:
+            emoji = reaction.emoji
+        else:
+            #timeout
+            await embedMsg.edit(embed=deadEmbed("timeout"))
+            await embedMsg.clear_reactions()
+            return
+        
+
+        if emoji == "➡️":
+            teamID += 1
+            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
+            await reaction.remove(ctx.message.author)
+        elif emoji == "⬅️":
+            teamID -= 1
+            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
+            await reaction.remove(ctx.message.author)
+        elif emoji == "❌": #reaction is string ('x' or 'timeout')
+            await embedMsg.edit(embed=deadEmbed("kill"))
+            await embedMsg.clear_reactions()
+            return
+
+
+#
+#
+#
 @client.command(name='nhl')
 async def _nhl(ctx, *args): 
     if (args):
@@ -320,11 +410,9 @@ async def _player(ctx:SlashContext, name):
     await ctx.send(embed = playerEmbed)   
 
 
-    
-
-#[teamstats] slash command
+#[team] slash command
 @slash.slash(
-    name="teamstats", 
+    name="johnson", 
     description = "want to find team details?", 
     guild_ids = guild_ids,
     options = [
@@ -336,12 +424,42 @@ async def _player(ctx:SlashContext, name):
         )
     ]
 ) 
-async def _roster(ctx:SlashContext, team):
+async def _johnson(ctx:SlashContext, team):
     #print(f"THIS IS CRAZY: {team}")
     #await ctx.send(f"{team}")  
-    playerEmbed = getPlayer(ctx, team) 
-    await ctx.send(embed = playerEmbed)
+    teamID = int(team)
+    embedMsg = await ctx.send(embed = getTeamEmbed(ctx,teamID))
+    
+    reaction = None
+    
+    await embedMsg.add_reaction("⬅️")
+    await embedMsg.add_reaction("❌")
+    await embedMsg.add_reaction("➡️")
 
+    while True:
+        reaction = await pageReactions(ctx,embedMsg,7)
+
+        if type(reaction) != str:
+            emoji = reaction.emoji
+        else:
+            #timeout
+            await embedMsg.edit(embed=deadEmbed("timeout"))
+            await embedMsg.clear_reactions()
+            return
+        
+
+        if emoji == "➡️":
+            teamID += 1
+            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
+            await reaction.remove(ctx.author)
+        elif emoji == "⬅️":
+            teamID -= 1
+            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
+            await reaction.remove(ctx.author)
+        elif emoji == "❌": #reaction is string ('x' or 'timeout')
+            await embedMsg.edit(embed=deadEmbed("kill"))
+            await embedMsg.clear_reactions()
+            return
 
 # Run the client on discord server
 client.run(Token)
