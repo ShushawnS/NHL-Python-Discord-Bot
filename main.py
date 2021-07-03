@@ -13,7 +13,6 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 testingtestingtesting
 1
 2
-3
 '''
 
 #Initalize Variables
