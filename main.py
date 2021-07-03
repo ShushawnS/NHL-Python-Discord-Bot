@@ -9,6 +9,13 @@ import json
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
 
+'''
+testingtestingtesting
+1
+2
+3
+'''
+
 #Initalize Variables
 load_dotenv()
 Token = os.getenv('DISCORD_TOKEN')
