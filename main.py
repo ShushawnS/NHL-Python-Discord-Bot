@@ -88,8 +88,8 @@ def getRoster(ctx,team):
     #ctx.send(embed = myEmbed) 
 
 #Gets Player ID
-def getPlayerID(ctx):
-    playerName = 'daniel alfredsson'
+def getPlayerID(ctx, name):
+    playerName = name
     #Creates and Runs API Request [Player Details]
     base_url = 'https://suggest.svc.nhl.com/svc/suggest/v1/minplayers/{}'
     url = base_url.format(playerName)
@@ -105,6 +105,7 @@ def getPlayerID(ctx):
     nhlData = nhlData['suggestions'][0].split('|')
 
     print(nhlData[0])
+    return(nhlData[0])
 
 #Gets Player Function
 def getPlayer(ctx, id):
@@ -167,9 +168,10 @@ async def _nhl(ctx, *args):
             rosterEmbed = getRoster(ctx, args[1]) 
             await ctx.send(embed = rosterEmbed)
              
-        elif args[0] == 'player':
-            playerEmbed = getPlayer(ctx, args[1])
-            getPlayerID(ctx)
+        elif args[0] == 'player': 
+            id = getPlayerID(ctx, args[1])
+            playerEmbed = getPlayer(ctx, id)
+            
             await ctx.send(embed = playerEmbed) 
         
         elif args[0] == 'teamstats': 
@@ -286,19 +288,23 @@ async def _roster(ctx:SlashContext, team):
     guild_ids = guild_ids,
     options = [
         create_option (
-            name = "id",
+            name = "name",
             description = "here is where you get the player mmmmm",
             option_type = 3,
             required = True
         )
     ]
 ) 
-async def _player(ctx:SlashContext, id):
+async def _player(ctx:SlashContext, name):
     #print(f"THIS IS CRAZY: {team}")
-    #await ctx.send(f"{team}")  
+    #await ctx.send(f"{team}") 
+
+    id = getPlayerID(ctx, name) 
     playerEmbed = getPlayer(ctx, id)
-    getPlayerID(ctx)
-    await ctx.send(embed = playerEmbed) 
+    await ctx.send(embed = playerEmbed)   
+
+
+    
 
 #[teamstats] slash command
 @slash.slash(
