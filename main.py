@@ -186,22 +186,22 @@ def getTeamEmbed(ctx,teamID):
 
     return myEmbed
 
+'''KEEPING IN CASE BUTTONS DONT WORK WELL'''
+# async def pageReactions(ctx,embedMsg,secTimeout):
+# #given msg, watch for reactions and return -1,0,1 (⬅️❌➡️) depending on user input
+# # 0 = quit,
 
-async def pageReactions(ctx,embedMsg,secTimeout):
-#given msg, watch for reactions and return -1,0,1 (⬅️❌➡️) depending on user input
-# 0 = quit,
-
-    def check(reaction, user):
-    #parameters for a valid reaction
-        print(f"user reacted with {reaction.emoji} on team embed")
+#     def check(reaction, user):
+#     #parameters for a valid reaction
+#         print(f"user reacted with {reaction.emoji} on team embed")
             
-        return user == ctx.author and reaction.message.id == embedMsg.id and (reaction.emoji == "⬅️" or reaction.emoji == "➡️" or reaction.emoji == "❌")
+#         return user == ctx.author and reaction.message.id == embedMsg.id and (reaction.emoji == "⬅️" or reaction.emoji == "➡️" or reaction.emoji == "❌")
 
-    try:
-        reaction, user = await ctx.bot.wait_for('reaction_add', timeout=secTimeout, check=check)
-        return reaction
-    except asyncio.TimeoutError:
-        return "timeout"
+#     try:
+#         reaction, user = await ctx.bot.wait_for('reaction_add', timeout=secTimeout, check=check)
+#         return reaction
+#     except asyncio.TimeoutError:
+#         return "timeout"
 
 def deadEmbed(type):
     if(type == "timeout"):
@@ -246,57 +246,6 @@ def getSchedule(ctx):
     return myEmbed 
 
 #Handles '!' commands
-
-#
-#
-#
-
-@client.command(name="team")
-async def _team(ctx,*args):
-    #print(f"THIS IS CRAZY: {team}")
-    #await ctx.send(f"{team}")
-
-    print(f"ARG0 IS {args[0]}")
-
-    teamID = int(args[0])
-
-    embedMsg = await ctx.send(embed = getTeamEmbed(ctx,teamID))
-    
-    reaction = None
-    
-    await embedMsg.add_reaction("⬅️")
-    await embedMsg.add_reaction("❌")
-    await embedMsg.add_reaction("➡️")
-
-    while True:
-        reaction = await pageReactions(ctx,embedMsg,7)
-
-        if type(reaction) != str:
-            emoji = reaction.emoji
-        else:
-            #timeout
-            await embedMsg.edit(embed=deadEmbed("timeout"))
-            await embedMsg.clear_reactions()
-            return
-        
-
-        if emoji == "➡️":
-            teamID += 1
-            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
-            await reaction.remove(ctx.message.author)
-        elif emoji == "⬅️":
-            teamID -= 1
-            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
-            await reaction.remove(ctx.message.author)
-        elif emoji == "❌": #reaction is string ('x' or 'timeout')
-            await embedMsg.edit(embed=deadEmbed("kill"))
-            await embedMsg.clear_reactions()
-            return
-
-
-#
-#
-#
 @client.command(name='nhl')
 async def _nhl(ctx, *args): 
     if (args):
@@ -454,58 +403,6 @@ async def _player(ctx:SlashContext, name):
     id = getPlayerID(ctx, name) 
     playerEmbed = getPlayer(ctx, id)
     await ctx.send(embed = playerEmbed)   
-
-
-#[team] slash command
-@slash.slash(
-    name="johnson", 
-    description = "want to find team details?", 
-    guild_ids = guild_ids,
-    options = [
-        create_option (
-            name = "team",
-            description = "here is where you get the team stats mmmmm",
-            option_type = 3,
-            required = True
-        )
-    ]
-) 
-async def _johnson(ctx:SlashContext, team):
-    #print(f"THIS IS CRAZY: {team}")
-    #await ctx.send(f"{team}")  
-    teamID = int(team)
-    embedMsg = await ctx.send(embed = getTeamEmbed(ctx,teamID))
-    
-    reaction = None
-    
-    await embedMsg.add_reaction("⬅️")
-    await embedMsg.add_reaction("❌")
-    await embedMsg.add_reaction("➡️")
-
-    while True:
-        reaction = await pageReactions(ctx,embedMsg,7)
-
-        if type(reaction) != str:
-            emoji = reaction.emoji
-        else:
-            #timeout
-            await embedMsg.edit(embed=deadEmbed("timeout"))
-            await embedMsg.clear_reactions()
-            return
-        
-
-        if emoji == "➡️":
-            teamID += 1
-            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
-            await reaction.remove(ctx.author)
-        elif emoji == "⬅️":
-            teamID -= 1
-            await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
-            await reaction.remove(ctx.author)
-        elif emoji == "❌": #reaction is string ('x' or 'timeout')
-            await embedMsg.edit(embed=deadEmbed("kill"))
-            await embedMsg.clear_reactions()
-            return
 
 # Run the client on discord server
 client.run(Token)
