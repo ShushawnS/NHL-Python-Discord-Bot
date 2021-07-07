@@ -2,12 +2,16 @@
 import os
 import discord 
 import asyncio
+from discord_components import component
 from dotenv import load_dotenv
 from discord.ext import commands 
 import requests   
 import json 
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
+
+from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component,create_select, create_select_option
+from discord_slash.model import ButtonStyle
 
 import functions
 
@@ -184,6 +188,69 @@ async def _player(ctx:SlashContext, name):
     id = functions.getPlayerID(ctx, name) 
     playerEmbed = functions.getPlayer(ctx, id)
     await ctx.send(embed = playerEmbed)   
+
+#[team] slash command
+@slash.slash(
+    name="team", 
+    description = "want to find team details?", 
+    guild_ids = guild_ids,
+    options = [
+        create_option (
+            name = "team",
+            description = "here is where you get the team stats mmmmm",
+            option_type = 4,
+            required = True
+        )
+    ]
+) 
+
+async def _team(ctx:SlashContext, team):
+
+    teamID = int(team)
+
+    buttons = [
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="⬅️",
+                custom_id="left"),
+            create_button(
+                style=ButtonStyle.danger,
+                emoji="❌",
+                custom_id="x"),
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="➡️",
+                custom_id="right")
+            ]
+    
+    action_row = create_actionrow(*buttons)
+
+    embedMsg = await ctx.send(embed=functions.getTeamEmbed(ctx,teamID), components=[action_row])
+
+    #await functions.watchTeamEmbed(client,ctx,embedMsg,teamID,action_row)
+
+    '''to do later -- figure out how to only let buttons work for the /team command invoker'''
+    def check(buttctx):
+        return buttctx.origin_message_id == embedMsg.id #and buttonclicker = cmd invoker????
+
+    while True:
+        try:
+            button_ctx: ComponentContext = await wait_for_component(client, components=action_row,timeout=7,check=check)
+
+            if button_ctx.custom_id == "x":
+                await embedMsg.edit(embed=functions.deadEmbed("kill"),components=[])
+                break
+            elif button_ctx.custom_id == "left":
+                teamID -= 1
+            elif button_ctx.custom_id == "right":
+                teamID += 1
+
+            await button_ctx.edit_origin(embed=functions.getTeamEmbed(ctx,teamID))
+
+        except asyncio.TimeoutError:
+            await embedMsg.edit(embed=functions.deadEmbed("timeout"),components=[])
+            break
+
 
 # Run the client on discord server
 client.run(Token)

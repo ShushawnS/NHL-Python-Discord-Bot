@@ -1,12 +1,16 @@
 import os
 import discord 
 import asyncio
+from discord_components import component
 from dotenv import load_dotenv
 from discord.ext import commands 
 import requests   
 import json 
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
+
+from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component,create_select, create_select_option
+from discord_slash.model import ButtonStyle
 
 #Get Roster Function 
 def getRoster(ctx,team):
@@ -127,8 +131,8 @@ def getTeamEmbed(ctx,teamID):
     base_url = 'https://statsapi.web.nhl.com/api/v1/teams/{}/stats'
     url = base_url.format(teamID)
     response = requests.get(url)
-    print(response.status_code)
-    print(response.text)
+    #print(response.status_code)
+    #print(response.text)
 
     #Makes JSON Information A Python Object
     nhlJSON = response.text
@@ -147,6 +151,32 @@ def getTeamEmbed(ctx,teamID):
         #myEmbed.add_field(name="?????", value="This team ID probably doesn't exist.", inline = True)
 
     return myEmbed
+
+
+# async def watchTeamEmbed(client,ctx,embedMsg,teamID,action_row):
+# #watches teamstats embed for buttonpushes and edits accordingly
+#     '''to do later -- figure out how to only let buttons work for the /team command invoker'''
+#     def check(buttctx):
+#         return buttctx.origin_message_id == embedMsg.id #and buttonclicker = cmd invoker????
+
+#     try:
+#         button_ctx: ComponentContext = await wait_for_component(client, components=action_row,timeout=7,check=check)
+
+#         if button_ctx.custom_id == "x":
+#             await embedMsg.edit(embed=deadEmbed("kill"),components=[])
+#             return
+#         elif button_ctx.custom_id == "left":
+#             teamID -= 1
+#         elif button_ctx.custom_id == "right":
+#             teamID += 1
+
+#         await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
+#         await watchTeamEmbed(client,ctx,embedMsg,teamID,action_row)
+#         return
+            
+#     except asyncio.TimeoutError:
+#         await embedMsg.edit(embed=deadEmbed("timeout"),components=[])
+#         return
 
 '''KEEPING IN CASE BUTTONS DONT WORK WELL'''
 # async def pageReactions(ctx,embedMsg,secTimeout):
@@ -198,5 +228,5 @@ def getSchedule(ctx):
     for x in range(totalGames):
         myEmbed.add_field(name = f"** {scheduleData['dates'][0]['games'][x]['teams']['away']['team']['name']} vs. {scheduleData['dates'][0]['games'][x]['teams']['home']['team']['name']} **", value = f" > Arena: {scheduleData['dates'][0]['games'][x]['venue']['name']} \n > ", inline = True)
 
-
-    return myEmbed 
+    return myEmbed
+    
