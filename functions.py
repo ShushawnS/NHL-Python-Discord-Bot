@@ -126,7 +126,7 @@ def getPlayer(ctx, id):
     return myEmbed
 
 def getTeamEmbed(ctx,teamID):
-    #Creates and Runs API Request [Roster Details]
+    #Creates and Runs API Request [Team Details]
     print(f"GETTING TEAMID DATA {teamID} !!!!!\n\n\n")
     base_url = 'https://statsapi.web.nhl.com/api/v1/teams/{}/stats'
     url = base_url.format(teamID)
@@ -229,4 +229,31 @@ def getSchedule(ctx):
         myEmbed.add_field(name = f"** {scheduleData['dates'][0]['games'][x]['teams']['away']['team']['name']} vs. {scheduleData['dates'][0]['games'][x]['teams']['home']['team']['name']} **", value = f" > Arena: {scheduleData['dates'][0]['games'][x]['venue']['name']} \n > ", inline = True)
 
     return myEmbed
+
+def getStandings(ctx):
+
+    #Creates and Runs API Request [Standings Details]
+    base_url = 'https://statsapi.web.nhl.com/api/v1/standings'
+    response = requests.get(base_url)
+    #print(response.status_code)
+    print(response.text)
+
+    #Makes JSON Information A Python Object
+    standingsJSON = response.text
+    nhlStandings = json.loads(standingsJSON) 
+
+    divisionNum = 3
+    numTeams = len(nhlStandings['records'][divisionNum]['teamRecords'])
+    x  = 0
+
+    #Create Embed 
+    myEmbed = discord.Embed(title = f"Standings ", description = f" All Teams! \n", color = 0x00ff00)            
+    myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url) 
+    myEmbed.set_footer(text = "NHL BOT -- CREATED BY: SHUSHAWN & SHAILEN") 
+    myEmbed.set_thumbnail(url=f"https://www-league.nhlstatic.com/images/logos/league-dark/133-flat.svg")
     
+    for x in range(numTeams):
+        myEmbed.add_field( name = f"{nhlStandings['records'][divisionNum]['teamRecords'][x]['team']['name']}", value = " big dong ", inline = True) 
+
+    return myEmbed
+

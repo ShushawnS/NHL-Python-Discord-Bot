@@ -81,7 +81,12 @@ async def _nhl(ctx, *args):
         
         elif args[0] == 'schedule': 
             scheduleEmbed = functions.getSchedule(ctx)
-            await ctx.send(embed = scheduleEmbed)
+            await ctx.send(embed = scheduleEmbed) 
+        
+        elif args[0] == 'standings':
+            print("Hi") 
+            standingsEmbed = functions.getStandings(ctx)
+            await ctx.send(embed = standingsEmbed) 
         
         elif args[0] == 'teamstats': 
 
