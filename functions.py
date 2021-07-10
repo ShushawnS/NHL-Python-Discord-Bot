@@ -126,8 +126,8 @@ def getPlayer(ctx, id):
     return myEmbed
 
 def getTeamEmbed(ctx,teamID):
-    #Creates and Runs API Request [Team Details]
-    print(f"GETTING TEAMID DATA {teamID} !!!!!\n\n\n")
+    #Creates and Runs API Request [Roster Details]
+    #print(f"GETTING TEAMID DATA {teamID} !!!!!")
     base_url = 'https://statsapi.web.nhl.com/api/v1/teams/{}/stats'
     url = base_url.format(teamID)
     response = requests.get(url)
@@ -138,68 +138,96 @@ def getTeamEmbed(ctx,teamID):
     nhlJSON = response.text
     nhlData = json.loads(nhlJSON)
 
+    stat = nhlData['stats'][0]['splits'][0]['stat']
+    rank = nhlData['stats'][1]['splits'][0]['stat']
+
     #Create Embed
     try:
-        myEmbed = discord.Embed(title=nhlData['stats'][0]['splits'][0]['team']['name'], description="")
-        myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url)
+        myEmbed = discord.Embed(
+            title=nhlData['stats'][0]['splits'][0]['team']['name'],
+            description="",
+            color=0x2f3136
+        )
+
+        myEmbed.set_author(
+            name=ctx.author.display_name,
+            url="https://www.nhl.com/",
+            icon_url=ctx.author.avatar_url)
+
         myEmbed.set_footer(text = f"NHL Stats - Team ID: {teamID}")
-        myEmbed.add_field(name="teamname", value=nhlData["stats"][0]["splits"][0]["team"]["name"], inline = True)
+
+        
+        count = 0
+
+        #SHOW (MOST) DATA FROM JSON IN EMBED (for testing)
+        # for x in stat:
+
+        #     valueString = str(stat[x])
+
+        #     #if no rank data, dont print it
+        #     if x in rank.keys():
+        #         valueString += f"\n*{rank[x]}*"
+            
+        #     myEmbed.add_field(
+        #     name=f"{x}",
+        #     value=valueString,
+        #     inline = True
+        #     )
+
+        #     count += 1
+
+        #     if(count >= 25):
+        #         break
+        
+
+        myEmbed.add_field(
+            name="__Overview__",
+            value=f"**GP**: {stat['gamesPlayed']}\n{stat['wins']}W {stat['losses']}L {stat['ot']}OT",
+            inline = True
+        )
+
+        myEmbed.add_field(
+            name="__Points__",
+            value=f"**PTS**: {stat['pts']} (*{rank['pts']}*)\n**PT%**: {stat['ptPctg']}",
+            inline = True
+        )
+
+        myEmbed.add_field(
+            name="__Goals__",
+            value=f"**GPG**: {stat['goalsPerGame']} (*{rank['goalsPerGame']}*)\n**GAA**: {stat['goalsAgainstPerGame']} (*{rank['goalsAgainstPerGame']}*)",
+            inline = True
+        )
+
+        myEmbed.add_field(
+            name="__Shots/Saves__",
+            value=f"**SF/G**: {stat['shotsPerGame']} (*{rank['shotsPerGame']}*)\n**SF%**: {stat['shootingPctg']} (*{rank['shootingPctRank']}*)\n**SA/G**: {stat['shotsAllowed']} (*{rank['shotsAllowed']}*)\n**SV%**: {stat['savePctg']} (*{rank['savePctRank']}*)",
+            inline = True
+        )
+
+        myEmbed.add_field(
+            name="__Powerplay__",
+            value=f"**PPs**: {stat['powerPlayOpportunities']} (*{rank['powerPlayOpportunities']}*)\n**PPG**: {stat['powerPlayGoals']} (*{rank['powerPlayGoals']}*)\n**PP%**: {stat['powerPlayPercentage']} (*{rank['powerPlayPercentage']}*)\n**PPGA**: {stat['powerPlayGoalsAgainst']} (*{rank['powerPlayGoalsAgainst']}*)\n**PK%**: {stat['penaltyKillPercentage']} (*{rank['penaltyKillPercentage']}*)",
+            inline = True
+        )
+
+        myEmbed.add_field(
+            name="__Faceoffs__",
+            value=f"**FO**: {stat['faceOffsTaken']} (*{rank['faceOffsTaken']}*)\n**FOW**: {stat['faceOffsWon']} (*{rank['faceOffsWon']}*)\n**FOL**: {stat['faceOffsLost']} (*{rank['faceOffsLost']}*)\n**FO%**: {stat['faceOffWinPercentage']} (*{rank['faceOffWinPercentage']}*)",
+            inline = True
+        )
+
     except:
-        myEmbed = discord.Embed(title = "Error", description="Something went wrong. This team ID probably doesn't exist or doesn't have any data associated with it.")
-        myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url)
-        myEmbed.set_footer(text = f"NHL Stats - Team ID: {teamID}")
-        #myEmbed.add_field(name="?????", value="This team ID probably doesn't exist.", inline = True)
+        return deadEmbed("error")
 
     return myEmbed
 
-
-# async def watchTeamEmbed(client,ctx,embedMsg,teamID,action_row):
-# #watches teamstats embed for buttonpushes and edits accordingly
-#     '''to do later -- figure out how to only let buttons work for the /team command invoker'''
-#     def check(buttctx):
-#         return buttctx.origin_message_id == embedMsg.id #and buttonclicker = cmd invoker????
-
-#     try:
-#         button_ctx: ComponentContext = await wait_for_component(client, components=action_row,timeout=7,check=check)
-
-#         if button_ctx.custom_id == "x":
-#             await embedMsg.edit(embed=deadEmbed("kill"),components=[])
-#             return
-#         elif button_ctx.custom_id == "left":
-#             teamID -= 1
-#         elif button_ctx.custom_id == "right":
-#             teamID += 1
-
-#         await embedMsg.edit(embed=getTeamEmbed(ctx,teamID))
-#         await watchTeamEmbed(client,ctx,embedMsg,teamID,action_row)
-#         return
-            
-#     except asyncio.TimeoutError:
-#         await embedMsg.edit(embed=deadEmbed("timeout"),components=[])
-#         return
-
-'''KEEPING IN CASE BUTTONS DONT WORK WELL'''
-# async def pageReactions(ctx,embedMsg,secTimeout):
-# #given msg, watch for reactions and return -1,0,1 (⬅️❌➡️) depending on user input
-# # 0 = quit,
-
-#     def check(reaction, user):
-#     #parameters for a valid reaction
-#         print(f"user reacted with {reaction.emoji} on team embed")
-            
-#         return user == ctx.author and reaction.message.id == embedMsg.id and (reaction.emoji == "⬅️" or reaction.emoji == "➡️" or reaction.emoji == "❌")
-
-#     try:
-#         reaction, user = await ctx.bot.wait_for('reaction_add', timeout=secTimeout, check=check)
-#         return reaction
-#     except asyncio.TimeoutError:
-#         return "timeout"
-
 def deadEmbed(type):
     if(type == "timeout"):
-        return discord.Embed(title="nice one", description="self.shit()")
-    if(type == "kill"):
-        return discord.Embed(title="adios", description="i will remember you hermano")
+        return discord.Embed(description="⏲ This session timed out (15s).",color=0xED4245)
+    elif(type == "kill"):
+        return discord.Embed(description="👋 Au revoir, mon ami.",color=0xED4245)
+    elif(type == "error"):
+        return discord.Embed(description="🤔 Something went wrong. Please try again.",color=0xED4245)
 
 def getSchedule(ctx):
 
