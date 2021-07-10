@@ -257,4 +257,33 @@ def getSchedule(ctx):
         myEmbed.add_field(name = f"** {scheduleData['dates'][0]['games'][x]['teams']['away']['team']['name']} vs. {scheduleData['dates'][0]['games'][x]['teams']['home']['team']['name']} **", value = f" > Arena: {scheduleData['dates'][0]['games'][x]['venue']['name']} \n > ", inline = True)
 
     return myEmbed
+
+def getStandings(ctx):
+
+    #Creates and Runs API Request [Standings Details]
+    base_url = 'https://statsapi.web.nhl.com/api/v1/standings'
+    response = requests.get(base_url)
+    #print(response.status_code)
+    #print(response.text)
+
+    #Makes JSON Information A Python Object
+    standingsJSON = response.text
+    nhlStandings = json.loads(standingsJSON) 
+
+    divisionNum = 3
+    numTeams = len(nhlStandings['records'][divisionNum]['teamRecords'])
+    x  = 0
+
+    #Create Embed 
+    myEmbed = discord.Embed(title = f"Standings For: ", description = f" {nhlStandings['records'][divisionNum]['division']['name']} \n", color = 0x00ff00)            
+    myEmbed.set_author(name=ctx.author.display_name, url="https://www.nhl.com/", icon_url=ctx.author.avatar_url) 
+    myEmbed.set_footer(text = "NHL BOT -- CREATED BY: SHUSHAWN & SHAILEN") 
+    myEmbed.set_thumbnail(url=f"https://www-league.nhlstatic.com/images/logos/league-dark/133-flat.svg") 
+
+    nhlStandings = nhlStandings['records'][divisionNum]['teamRecords']
     
+    for x in range(numTeams):
+        myEmbed.add_field( name = f"{x+1}. {nhlStandings[x]['team']['name']}", value = f" > Record [{nhlStandings[x]['gamesPlayed']}GP]: ({nhlStandings[x]['leagueRecord']['wins']}W - {nhlStandings[x]['leagueRecord']['losses']}L - {nhlStandings[x]['leagueRecord']['ot']}OT - {nhlStandings[x]['points']}P) \n > League Rank: {nhlStandings[x]['leagueRank']} \n > Streak: {nhlStandings[x]['streak']['streakCode']} \n > GA: {nhlStandings[x]['goalsAgainst']} - GF: {nhlStandings[x]['goalsScored']}  ", inline = False) 
+
+    return myEmbed
+
