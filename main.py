@@ -44,7 +44,7 @@ async def _ping(ctx: SlashContext):
 async def on_ready():
     await client.change_presence(
         status=discord.Status.dnd,
-        activity=discord.Game('w/ Shaan Pepe')
+        activity=discord.Game("message.text.exe")
     )
     print(
         f'\n',
@@ -139,6 +139,32 @@ async def _nhl(ctx, *args):
         
     await ctx.send('{} {} arguments: {}'.format(len(args), format(ctx.message.author.mention), ', '.join(args)))
 
+@client.command(name='testing')
+#FIGURING OUT DROPDOWNS
+async def _testing(ctx):
+    select = create_select(
+        options=[# the options in your dropdown
+            create_select_option("Lab Coat", value="coat", emoji="🥼"),
+            create_select_option("Test Tube", value="tube", emoji="🧪"),
+            create_select_option("Petri Dish", value="dish", emoji="🧫"),
+        ],
+        placeholder="Choose your option",  # the placeholder text to show when no options have been chosen
+        min_values=1,  # the minimum number of options a user must select
+        max_values=1,  # the maximum number of options a user can select
+    )
+
+    components=[create_actionrow(select),create_actionrow(select)]
+
+    msg = await ctx.send("ok!", components=components)
+
+    while True:
+        try:
+            button_ctx: ComponentContext = await wait_for_component(client, components=components,timeout=15)
+            await button_ctx.edit_origin(content=f"you selected {button_ctx.selected_options}")
+        except asyncio.TimeoutError:
+            await msg.edit(components=[],embed=functions.deadEmbed("timeout"))
+
+
 #Handles '/' Commands
 
 #[roster] slash command
@@ -181,6 +207,7 @@ async def _roster(ctx:SlashContext, team):
         )
     ]
 ) 
+
 async def _player(ctx:SlashContext, name):
     #print(f"THIS IS CRAZY: {team}")
     #await ctx.send(f"{team}") 
@@ -205,9 +232,21 @@ async def _player(ctx:SlashContext, name):
 ) 
 
 async def _team(ctx:SlashContext, team):
+#given ID, show team stats
 
     teamID = int(team)
+    teamIndex = 0
 
+    validTeams = [1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,28,29,30,52,53,54]
+
+    if(team in validTeams):
+        teamIndex = validTeams.index(teamID)
+    else:
+        await ctx.send(content="Invalid ID. Try again.",delete_after=3)
+        return
+
+
+    '''needs polishing/commenting'''
     buttons = [
             create_button(
                 style=ButtonStyle.primary,
@@ -222,35 +261,102 @@ async def _team(ctx:SlashContext, team):
                 emoji="➡️",
                 custom_id="right")
             ]
+
+    buttonsStart = [
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="⬅️",
+                custom_id="left",
+                disabled=True),
+            create_button(
+                style=ButtonStyle.danger,
+                emoji="❌",
+                custom_id="x"),
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="➡️",
+                custom_id="right")
+            ]
+    
+    buttonsEnd = [
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="⬅️",
+                custom_id="left"),
+            create_button(
+                style=ButtonStyle.danger,
+                emoji="❌",
+                custom_id="x"),
+            create_button(
+                style=ButtonStyle.primary,
+                emoji="➡️",
+                custom_id="right",
+                disabled=True)
+            ]
     
     action_row = create_actionrow(*buttons)
 
-    embedMsg = await ctx.send(embed=functions.getTeamEmbed(ctx,teamID), components=[action_row])
+    def getComponents(a):
+        #a is index of team in list of team IDs
+        if(a == 0):
+            return [create_actionrow(*buttonsStart)]
+        if(a == len(validTeams)-1):
+            return [create_actionrow(*buttonsEnd)]
+        else:
+            return [create_actionrow(*buttons)]
 
-    #await functions.watchTeamEmbed(client,ctx,embedMsg,teamID,action_row)
+    embedMsg = await ctx.send(embed=functions.getTeamEmbed(ctx,validTeams[teamIndex]), components=getComponents(teamIndex))
 
-    '''to do later -- figure out how to only let buttons work for the /team command invoker'''
     def check(buttctx):
-        return buttctx.origin_message_id == embedMsg.id #and buttonclicker = cmd invoker????
+        return buttctx.origin_message_id == embedMsg.id and ctx.author_id == buttctx.author_id
 
     while True:
         try:
-            button_ctx: ComponentContext = await wait_for_component(client, components=action_row,timeout=7,check=check)
+            button_ctx: ComponentContext = await wait_for_component(client, components=action_row,timeout=15,check=check)
 
             if button_ctx.custom_id == "x":
                 await embedMsg.edit(embed=functions.deadEmbed("kill"),components=[])
                 break
             elif button_ctx.custom_id == "left":
-                teamID -= 1
+                teamIndex -= 1
             elif button_ctx.custom_id == "right":
-                teamID += 1
+                teamIndex += 1
 
-            await button_ctx.edit_origin(embed=functions.getTeamEmbed(ctx,teamID))
+            #edit msg via the returned button_ctx objects, acts as a response to the interaction
+            #interaction fails if edited via embedMsg.edit()
+            await button_ctx.edit_origin(
+                embed=functions.getTeamEmbed(ctx,validTeams[teamIndex]),
+                components=getComponents(teamIndex))
 
         except asyncio.TimeoutError:
             await embedMsg.edit(embed=functions.deadEmbed("timeout"),components=[])
             break
 
+@slash.slash(
+    name="test",
+    description="This is just a test command, nothing more.",
+    options=[
+        create_option(
+            name="optone",
+            description="This is the first option we have.",
+            option_type=3,
+            required=True,
+            choices=[
+                create_choice(
+                    name="ChoiceOne",
+                    value="DOGE!"
+                ),
+                create_choice(
+                    name="ChoiceTwo",
+                    value="NO DOGE"
+                )
+            ]
+        )
+    ]
+)
+
+async def _test(ctx: SlashContext,optone: str):
+    await ctx.send(f"YOU CHOSE {optone}!!!")
 
 # Run the client on discord server
 client.run(Token)
