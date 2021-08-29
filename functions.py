@@ -125,6 +125,7 @@ def getPlayer(ctx, id):
 
     return myEmbed
 
+#Gets Team Function
 def getTeamEmbed(ctx,teamID):
     #Creates and Runs API Request [Roster Details]
     #print(f"GETTING TEAMID DATA {teamID} !!!!!")
@@ -229,13 +230,14 @@ def deadEmbed(type):
     elif(type == "error"):
         return discord.Embed(description="🤔 Something went wrong. Please try again.",color=0xED4245)
 
+#Gets Schedule Function
 def getSchedule(ctx):
 
-    #Creates and Runs API Request [Roster Details]
+    #Creates and Runs API Request [SChedule Details]
     base_url = 'https://statsapi.web.nhl.com/api/v1/schedule'
     #url = base_url.format(team)
     response = requests.get(base_url)
-    print(response.status_code)
+    #print(response.status_code)
     #print(response.text)  
 
     #Makes JSON Information A Python Object
@@ -243,7 +245,6 @@ def getSchedule(ctx):
     scheduleData = json.loads(scheduleJSON)
 
     totalGames = scheduleData['totalGames']
-    print(totalGames) 
 
     #Create Embed 
     myEmbed = discord.Embed(title = f" Schedule For: ", description = f" Today! \n", color = 0x00ff00)            
@@ -258,7 +259,8 @@ def getSchedule(ctx):
 
     return myEmbed
 
-def getStandings(ctx):
+#Gets Standings Function
+def getStandings(ctx, division):
 
     #Creates and Runs API Request [Standings Details]
     base_url = 'https://statsapi.web.nhl.com/api/v1/standings'
@@ -269,6 +271,15 @@ def getStandings(ctx):
     #Makes JSON Information A Python Object
     standingsJSON = response.text
     nhlStandings = json.loads(standingsJSON) 
+
+    #Determines Division Number
+    divisionName = {"Honda West", "Discover Central", "MassMutual East", "Scotia North"}  
+
+    #if division == "Honda West": 
+        #divisionNum = 2
+
+
+    print(divisionName[0])
 
     divisionNum = 3
     numTeams = len(nhlStandings['records'][divisionNum]['teamRecords'])

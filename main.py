@@ -83,8 +83,10 @@ async def _nhl(ctx, *args):
             await ctx.send(embed = scheduleEmbed) 
         
         elif args[0] == 'standings':
-            print("Hi") 
-            standingsEmbed = functions.getStandings(ctx)
+            division = args[1]
+            if (args[2]):
+                division = args[1] + " " + args[2] 
+            standingsEmbed = functions.getStandings(ctx, division)
             await ctx.send(embed = standingsEmbed) 
         
         elif args[0] == 'teamstats': 
@@ -218,7 +220,48 @@ async def _player(ctx:SlashContext, name):
 
     id = functions.getPlayerID(ctx, name) 
     playerEmbed = functions.getPlayer(ctx, id)
-    await ctx.send(embed = playerEmbed)   
+    await ctx.send(embed = playerEmbed)    
+
+#[schedule] slash command
+@slash.slash(
+    name="schedule", 
+    description = "want to find schedule details?", 
+    guild_ids = guild_ids,
+    options = [
+        create_option (
+            name = "team",
+            description = "here is where you get the player mmmmm",
+            option_type = 3,
+            required = True
+        )
+    ]
+) 
+
+async def _schedule(ctx:SlashContext, name):
+    #print(f"THIS IS CRAZY: {team}")
+    #await ctx.send(f"{team}") 
+
+    scheduleEmbed = functions.getSchedule(ctx)
+    await ctx.send(embed = scheduleEmbed)    
+
+#[schedule] slash command
+@slash.slash(
+    name="standings", 
+    description = "want to find schedule details?", 
+    guild_ids = guild_ids,
+    options = [
+        create_option (
+            name = "team",
+            description = "here is where you get the player mmmmm",
+            option_type = 3,
+            required = True
+        )
+    ]
+)  
+
+async def _schedule(ctx:SlashContext, name):
+    standingsEmbed = functions.getStandings(ctx)
+    await ctx.send(embed = standingsEmbed) 
 
 #[team] slash command
 @slash.slash(
