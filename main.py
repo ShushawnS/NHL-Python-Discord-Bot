@@ -395,7 +395,8 @@ async def _team(ctx:SlashContext, team):
                 ),
                 create_choice(
                     name="ChoiceTwo",
-                    value="NO DOGE"
+                    value="NO DOGE"   
+                    
                 )
             ]
         )
